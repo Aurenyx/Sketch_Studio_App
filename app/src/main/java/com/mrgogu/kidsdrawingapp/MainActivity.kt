@@ -58,6 +58,13 @@ class MainActivity : AppCompatActivity() {
                         "Permission granted for reading files.",
                         Toast.LENGTH_SHORT
                     ).show()
+
+                    // This Time Intent is used fetch data from gallery as we granted the files permission
+
+                    val pickIntent = Intent(Intent.ACTION_PICK,
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                        openGalleryLauncher.launch(pickIntent)
+
                 } else {
                     Toast.makeText(
                         this@MainActivity,
