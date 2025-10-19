@@ -25,7 +25,16 @@ class MainActivity : AppCompatActivity() {
     private var drawingView: DrawingView? = null
     private var mImageButtonCurrentPaint: ImageButton? = null
 
-    // ✅ Make this a class-level variable
+    val openGalleryLauncher: ActivityResultLauncher<Intent> =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
+            result ->
+            if (result.resultCode == RESULT_OK && result.data!= null){
+                val  imageBackGround: ImageView = findViewById(R.id.iv_background)
+                imageBackGround.setImageURI(result.data?.data)
+            }
+        }
+
+    //  This is a class-level variable
     private lateinit var requestPermission: ActivityResultLauncher<Array<String>>
 
     override fun onCreate(savedInstanceState: Bundle?) {
