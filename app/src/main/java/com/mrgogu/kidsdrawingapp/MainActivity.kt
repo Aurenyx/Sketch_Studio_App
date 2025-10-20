@@ -45,7 +45,7 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
-        // ✅ Initialize permission launcher here
+        //  Initialize permission launcher here
         requestPermission = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
         ) { permissions ->
@@ -92,10 +92,19 @@ class MainActivity : AppCompatActivity() {
         )
 
         val ib_brush: ImageButton = findViewById(R.id.ib_brush)
-        ib_brush.setOnClickListener { showBrushSizeChooserDialog() }
+        ib_brush.setOnClickListener {
+            showBrushSizeChooserDialog()
+            drawingView?.enableEraser(false)
+        }
 
         val ibGallery: ImageButton = findViewById(R.id.ib_gallery)
         ibGallery.setOnClickListener { requestStoragePermission() }
+
+        val ibUndo: ImageButton= findViewById(R.id.ib_undo)
+        ibUndo.setOnClickListener { drawingView?.undo() }
+
+        val ibEraser : ImageButton = findViewById(R.id.ib_eraser)
+        ibEraser.setOnClickListener { drawingView?.enableEraser(true) }
     }
 
     private fun showBrushSizeChooserDialog() {
@@ -107,7 +116,8 @@ class MainActivity : AppCompatActivity() {
             R.id.ib_small_brush to 5f,
             R.id.ib_medium_brush to 10f,
             R.id.ib_large_brush to 15f,
-            R.id.ib_extraLarge_brush to 20f
+            R.id.ib_extraLarge_brush to 20f,
+            R.id.ib_pencil to 2f
         )
 
         sizes.forEach { (id, size) ->
