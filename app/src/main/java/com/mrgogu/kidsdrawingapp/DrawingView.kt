@@ -6,6 +6,7 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
+import androidx.core.graphics.createBitmap
 
 class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) {
 
@@ -16,11 +17,8 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
     private var mBrushSize: Float = 0f
     private var color = Color.BLACK
     private var canvas: Canvas? = null
-
     private val mPaths = ArrayList<CustomPath>()
     private val mUndoPaths = ArrayList<CustomPath>()
-
-    private var isEraserOn = false
 
     init {
         setUpDrawing()
@@ -58,7 +56,6 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
         if (!mDrawPath!!.isEmpty) {
             mDrawPaint?.strokeWidth = mDrawPath!!.brushThickness
             mDrawPaint?.color = mDrawPath!!.color
-            mDrawPaint?.xfermode = if (isEraserOn) PorterDuffXfermode(PorterDuff.Mode.CLEAR) else null
             canvas.drawPath(mDrawPath!!, mDrawPaint!!)
         }
     }
@@ -69,7 +66,6 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
 
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                mDrawPath?.color = if (isEraserOn) Color.TRANSPARENT else color
                 mDrawPath?.brushThickness = mBrushSize
                 mDrawPath?.reset()
                 mDrawPath?.moveTo(touchX, touchY)
@@ -80,11 +76,10 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
             }
 
             MotionEvent.ACTION_UP -> {
-                // Draw the path onto the canvas immediately
-                mDrawPaint?.xfermode = if (isEraserOn) PorterDuffXfermode(PorterDuff.Mode.CLEAR) else null
-                canvas?.drawPath(mDrawPath!!, mDrawPaint!!)
+
                 mPaths.add(mDrawPath!!)
                 mDrawPath = CustomPath(color, mBrushSize)
+                mUndoPaths.clear()
             }
 
             else -> return false
@@ -106,25 +101,15 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
 
     fun undo() {
         if (mPaths.isNotEmpty()) {
-            mUndoPaths.add(mPaths.removeAt(mPaths.size - 1))
+            mUndoPaths.add(mPaths.removeAt(mPaths.size -  1))
             invalidate()
         }
     }
 
-    fun clearCanvas() {
-        mPaths.clear()
-        mUndoPaths.clear()
-        canvas?.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
-        invalidate()
-    }
-
-    fun enableEraser(enable: Boolean) {
-        isEraserOn = enable
-        if (enable) {
-            mDrawPaint?.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
-        } else {
-            mDrawPaint?.xfermode = null
-            mDrawPaint?.color = color
+    fun redo(){
+        if (mUndoPaths.isNotEmpty()){
+            mPaths.add(mUndoPaths.removeAt(mUndoPaths.size -1))
+            invalidate()
         }
     }
 

@@ -4,6 +4,9 @@ import android.Manifest
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
@@ -19,9 +22,15 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.createBitmap
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.get
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
 
 class MainActivity : AppCompatActivity() {
 
@@ -94,17 +103,21 @@ class MainActivity : AppCompatActivity() {
         val ib_brush: ImageButton = findViewById(R.id.ib_brush)
         ib_brush.setOnClickListener {
             showBrushSizeChooserDialog()
-            drawingView?.enableEraser(false)
         }
 
         val ibGallery: ImageButton = findViewById(R.id.ib_gallery)
         ibGallery.setOnClickListener { requestStoragePermission() }
 
-        val ibUndo: ImageButton= findViewById(R.id.ib_undo)
+        val ibUndo: ImageButton= findViewById(R.id.ibUndo)
         ibUndo.setOnClickListener { drawingView?.undo() }
 
-        val ibEraser : ImageButton = findViewById(R.id.ib_eraser)
-        ibEraser.setOnClickListener { drawingView?.enableEraser(true) }
+        val ibRedo: ImageButton = findViewById(R.id.ibRedo)
+        ibRedo.setOnClickListener { drawingView?.redo() }
+
+        val ibSave: ImageButton = findViewById(R.id.ibsave)
+        ibRedo.setOnClickListener { drawingView?.redo() }
+
+
     }
 
     private fun showBrushSizeChooserDialog() {
@@ -183,5 +196,62 @@ class MainActivity : AppCompatActivity() {
                 dialog.dismiss()
             }
             .show()
+    }
+
+    fun getBitmapFromView(view: View) : Bitmap{
+        val returnBitmap = createBitmap(view.width, view.height)
+        // its basically Bitmap.createBitmap(view.width,view.height , Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(returnBitmap)
+        val bgDrawable = view.background
+        if (bgDrawable != null){
+            bgDrawable.draw(canvas)
+        }else{
+            canvas.drawColor(Color.WHITE)
+        }
+        view.draw(canvas)
+
+        return returnBitmap
+    }
+
+    private suspend fun saveBitmapFile(mbitmap: Bitmap?): String{
+        var result = ""
+        withContext(Dispatchers.IO) {
+            if (mbitmap != null) {
+                try {
+                    val bytes = ByteArrayOutputStream()
+                    mbitmap.compress(Bitmap.CompressFormat.PNG, 90, bytes)
+
+                    val f = File(externalCacheDir?.absoluteFile.toString()
+                    + File.separator + "KidsDrawingApp_" + System.currentTimeMillis()/1000 + ".png")
+
+                    val fo = FileOutputStream(f)
+                    fo.write(bytes.toByteArray())
+                    fo.close()
+
+                    result = f.absolutePath
+
+                    runOnUiThread {
+                        if (result.isNotEmpty()){
+                            Toast.makeText(
+                                this@MainActivity,
+                                "File Saved Successfully",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }else{
+                            Toast.makeText(
+                                this@MainActivity,
+                                "Something went wrong while saving the file",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                }
+                catch (e: Exception){
+                    result = ""
+                    e.printStackTrace()
+                }
+            }
+        }
+        return result
     }
 }
