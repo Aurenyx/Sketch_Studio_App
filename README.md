@@ -1,7 +1,7 @@
 
-# 🎨 Kids Drawing App - Shape Imagination 
+# 🎨 Sketch Studio — Android Drawing App 
 
-Shape Imagination is a fun, creative, and kid-friendly drawing app designed to help children explore their imagination through colors, shapes, and free drawing.
+Shape Imagination is a fun, creative, and designed to help children explore their imagination through colors, shapes, and free drawing.
 The interface is clean, colorful, and super easy for kids to understand — all tools are visual and instantly accessible.
 
 
